@@ -1,0 +1,10 @@
+[
+    {
+        "id": "1",
+        "type": "link",
+        "title": "首页",
+        "name": "Home",
+        "path": "/home",
+        "component": "home/index"
+    }
+]

@@ -1,0 +1,12 @@
+{
+    "/auth": {
+        "target": "http://121.36.222.5:58588",
+        "secure": false,
+        "changeOrigin": true
+    },
+    "/admin": {
+        "target": "http://121.36.222.5:58588",
+        "secure": false,
+        "changeOrigin": true
+    }
+}

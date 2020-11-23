@@ -1,6 +1,3 @@
-# vue-alain  
-预览：[vue-alain](http://tengdada.gitee.io/vue-alain/#/login)
-
 ## Project setup
 ```
 npm install
