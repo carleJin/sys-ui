@@ -65,11 +65,15 @@ export const createRoutes = (arr) => {
         {
             path: '/',
             component: loadDocs('layout/index'),
-            redirect: '/login',
+            redirect: '/home',
+            children: groups
+        },{
+            path: '/home',
+            component: load('home/index'),
             children: groups
         },{
             path: '*',
-            redirect: '/404'
+            redirect: '/error/404'
         }
     ]
 }
@@ -113,13 +117,19 @@ router.beforeEach((to, from , next) => {
                 });
             }
         } else {
-            console.log('--无token--');
-            next({
-                path: '/login', 
-                query: {
-                    redirect: to.path
-                }
-            });
+            console.log('--无token--', to.path);
+            if(to.path !== '/' && to.path !== '/login') {
+                next({
+                    path: '/login', 
+                    query: {
+                        redirect: to.path
+                    }
+                });
+            } else {
+                next({
+                    path: '/login'
+                })
+            }
             NProgress.done();
         }
     }

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import store from '../store';
+import router from '../router';
 import { Notification } from 'element-ui';
 import { authToken } from '@/utils/auth';
 import { axiosConfig } from '@/base.config';
@@ -8,16 +9,16 @@ const instance = axios.create({
     timeout: 6000,
     headers: {
         'Access-Control-Allow-Origin': '*',
-        'content-type': 'application/json;charset=UTF-8',
+        'Content-Type': 'application/json;charset=UTF-8'
     }
 })
 
 instance.interceptors.request.use(
     config => {
         // console.log('拦截成功', config.headers);
-        if(!config.headers['Authorization']) {
-            config.headers['Authorization'] = `Bearer ${authToken.hasToken()}`;
-        }
+        // if(!config.headers['Authorization']) {
+        //     config.headers['Authorization'] = `Bearer ${authToken.hasToken()}`;
+        // }
         return config;
     }, 
     error => {
@@ -30,13 +31,14 @@ instance.interceptors.response.use(
     response => {
         // console.log('响应成功', response);
         const res = response.data
-
-        // 接口调用失败 code !== 0
-        if (res.code !== null && res.code !== undefined && res.code !== 0) {
-            // 50008:令牌非法；50012:其他客户端登录；50014:令牌过期；
-            if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
+        
+        if (res.code !== 20000) {
+            // 58000:未登录
+            if (res.code === 58000) {
                 store.dispatch('resetAuthState').then(() => {
-                    location.reload()
+                    if(router.history.current.path !== '/login') {
+                        location.reload()
+                    }
                 })
             }
 
