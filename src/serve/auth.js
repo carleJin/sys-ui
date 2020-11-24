@@ -16,10 +16,8 @@ export const loginInServe = (params) => {
 export const loginOutServe = () => {
     return api.ajax('GET', '-')
 }
-//菜单路由信息
+//菜单及用户信息
 export const appInfoServe = () => {
-    return api.ajax('GET', '-', {
-        groupCode_eq: 3
-    })
+    return api.ajax('GET', 'api/user/findUser')
 }
 

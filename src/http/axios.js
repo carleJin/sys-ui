@@ -16,9 +16,9 @@ const instance = axios.create({
 instance.interceptors.request.use(
     config => {
         // console.log('拦截成功', config.headers);
-        // if(!config.headers['Authorization']) {
-        //     config.headers['Authorization'] = `Bearer ${authToken.hasToken()}`;
-        // }
+        if(!config.headers['AccessToken']) {
+            config.headers['AccessToken'] = authToken.hasToken();
+        }
         return config;
     }, 
     error => {

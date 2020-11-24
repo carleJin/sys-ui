@@ -39,6 +39,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { loginOutServe } from '@/serve/auth';
+import { authToken } from '@/utils/auth';
 import International from '@/components/international';
 import FullScreen from '@/components/fullScreen';
 
@@ -73,8 +74,9 @@ export default {
         },
         loginOut() {
             this.$store.dispatch('resetAuthState', null).then(() => {
-                // location.reload();
-                this.$router.push('/login')
+                authToken.removeToken();
+                location.reload();
+                // this.$router.push('/login')
             });
         }
     },

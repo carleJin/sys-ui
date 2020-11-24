@@ -3,17 +3,14 @@ import VueRouter from "vue-router";
 import routes from './routes';
 Vue.use(VueRouter);
 import store from '@/store';
-import { baseConfig, userConfig } from '@/base.config';
+import { baseConfig } from '@/base.config';
 // 引入页面顶部进度条插件
 import NProgress from 'nprogress';
 // 进度条配置
 NProgress.configure({...baseConfig.NProgress});
 
-import { authToken } from '@/utils/auth';
-// import { appInfoServe } from '@/serve/auth';
-
-const asyncMenus = require('@/menu.json');
-const asyncRoutes = require('@/routes.json');
+import { authToken, menusFormat } from '@/utils/auth';
+import { appInfoServe } from '@/serve/auth';
 
 //路由白名单
 const whiteList = ['/login', '/error/404'];
@@ -24,14 +21,11 @@ const router = new VueRouter({
 });
 
 const load = (path) => {
-    // return resolve => require([`../views/${path}.vue`], resolve) 
     return () => import(`../views/${path}.vue`) 
 };
 const loadDocs = (path) => {
-    // return resolve => require([`../components/${path}.vue`], resolve) 
     return () => import(`../components/${path}.vue`) 
 };
-
 const loadRoutes = (arr, parent = []) => {
     let groups = [];
     arr.forEach(route => {
@@ -66,11 +60,13 @@ export const createRoutes = (arr) => {
             path: '/',
             component: loadDocs('layout/index'),
             redirect: '/home',
-            children: groups
-        },{
-            path: '/home',
-            component: load('home/index'),
-            children: groups
+            children: [
+                {
+                    path: 'home',
+                    component: load('home/index')
+                },
+                ...groups
+            ]
         },{
             path: '*',
             redirect: '/error/404'
@@ -100,21 +96,17 @@ router.beforeEach((to, from , next) => {
             } else {
                 console.log('--未设置routes--');
                 //获取 用户信息，路由及权限
-                // appInfoServe().then(() => {
-                //     store.dispatch('setMenus', asyncMenus);
-                //     store.dispatch('setRoutes', asyncRoutes).then(() => {
-                //         next({ ...to, replace: true })
-                //     });
-                // }).catch(() => {
-                //     next({path: '/login'});
-                //     NProgress.done();
-                // })
-                store.dispatch('setToken', userConfig.access_token);
-                store.dispatch('setUser', {...userConfig});
-                store.dispatch('setMenus', asyncMenus);
-                store.dispatch('setRoutes', asyncRoutes).then(() => {
-                    next({ ...to, replace: true })
-                });
+                appInfoServe().then(res => {
+                    const { menuDirList, userInfo } = res.data;
+                    const data = menusFormat(menuDirList || []);
+                    authToken.setToken(userInfo.accessToken);
+                    store.dispatch('setToken', userInfo.accessToken);
+                    store.dispatch('setUser', userInfo);
+                    store.dispatch('setMenus', data.menus);
+                    store.dispatch('setRoutes', data.routes).then(() => {
+                        next({ ...to, replace: true })
+                    });
+                })
             }
         } else {
             console.log('--无token--', to.path);

@@ -4,7 +4,7 @@
  * @key NProgress 顶部进度条[https://github.com/rstacruz/nprogress]
 */
 export const baseConfig = {
-    docTitle: 'vue-alain',
+    docTitle: 'sys',
     tokenExpires: () => new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
     NProgress: { minimum: 0.8, easing: 'ease', speed: 300, showSpinner: false }
 }

@@ -5,7 +5,7 @@
                 <div>
                     <h2 class="login-form-title">系统登录</h2>
                 </div>
-                <el-form class="login-el-form" :model="ruleForm" :rules="rules" ref="rf">
+                <el-form class="login-el-form" :model="ruleForm" :rules="rules" ref="rf" submit.prevent>
                     <el-form-item prop="userId">
                         <el-input v-model="ruleForm.userId" 
                             class="login-input"
@@ -26,7 +26,7 @@
                             <el-col :span="16">
                                 <el-input v-model="ruleForm.randCode" 
                                     class="login-input"
-                                    maxlength="6"
+                                    maxlength="4"
                                     placeholder="请输入验证码"
                                     @keyup.enter.native="loginTo('rf')">
                                 </el-input>
@@ -50,8 +50,8 @@
 </template>
 
 <script>
-import { authToken } from '@/utils/auth';
-import { initLoginServe, captchaServe, loginInServe } from '@/serve/auth';
+import { authToken, menusFormat } from '@/utils/auth';
+import { initLoginServe, captchaServe, loginInServe, appInfoServe } from '@/serve/auth';
 
 export default {
     data() {
@@ -73,7 +73,7 @@ export default {
         }
     },
     created() {
-        this.init();
+        // this.init();
         this.getCaptcha()
     },
     methods: {
@@ -81,7 +81,21 @@ export default {
         init() {
             initLoginServe()
             .then(res => {
-                this.$router.push('/home')
+                console.log('已经登录')
+                appInfoServe().then(response => {
+                    if(response && response.data) {
+                        const { menuDirList, userInfo } = response.data;
+                        const data = menusFormat(menuDirList || []);
+                        
+                        authToken.setToken(userInfo.accessToken);
+                        this.$store.dispatch('setToken', userInfo.accessToken);
+                        this.$store.dispatch('setUser', userInfo);
+                        this.$store.dispatch('setMenus', data.menus);
+                        this.$store.dispatch('setRoutes', data.routes).then(() => {
+                            this.$router.push('/home')
+                        });
+                    }
+                }).catch(err => { })
             })
             .catch(err => { })
         },
@@ -108,27 +122,36 @@ export default {
             if(this.loading) return;
             this.loading = true;
 
-            loginInServe(values).then(async (res) => {
-                if(res) {
-                    console.log(res)
-                    this.$router.push('/home')
-                    // authToken.setToken(res.access_token);
-                    // // await this.$store.dispatch('setToken', res.access_token);
-                    // await this.$store.dispatch('setUser', res);
-
-                    // /**
-                    //  * 获取路由、菜单权限
-                    //  * 此处优先把路由数据载入在进行跳转，可解决先跳转在加载路由而引发的 vue-router 报错
-                    // */
-                    // appInfoServe().then(() => {
-                    //     this.loading = false;
-                    //     this.$store.dispatch('setMenus', asyncMenus);
-                    //     this.$store.dispatch('setRoutes', asyncRoutes).then(() => {
-                    //         this.$router.push('/home')
-                    //     });
-                    // }).catch(() => {
-                    //     this.loading = false;
-                    // })
+            loginInServe(values).then((res) => {
+                if(res && res.data) {
+                    this.getUserInfo()
+                } else {
+                    this.$message.error('登录失败')
+                    this.loading = false;
+                }
+            }).catch(err => {
+                this.$message.error(err.message)
+                this.loading = false;
+            })
+        },
+        //获取用户信息
+        getUserInfo() {
+            appInfoServe().then(response => {
+                if(response && response.data) {
+                    const { menuDirList, userInfo } = response.data;
+                    const data = menusFormat(menuDirList || []);
+                    
+                    authToken.setToken(userInfo.accessToken);
+                    this.$store.dispatch('setToken', userInfo.accessToken);
+                    this.$store.dispatch('setUser', userInfo);
+                    this.$store.dispatch('setMenus', data.menus);
+                    this.$store.dispatch('setRoutes', data.routes).then(() => {
+                        this.loading = false;
+                        this.$router.push('/home')
+                    });
+                } else {
+                    this.$message.error('登录失败')
+                    this.loading = false;
                 }
             }).catch(err => {
                 this.$message.error(err.message)
